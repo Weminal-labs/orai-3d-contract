@@ -1,7 +1,7 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use cosmwasm_std::{CanonicalAddr, StdResult, Storage};
+use cosmwasm_std::{CanonicalAddr, HumanAddr, StdResult, Storage};
 use cw721::{ContractInfoResponse, Expiration};
 use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
 
@@ -9,6 +9,8 @@ use cw_storage_plus::{Index, IndexList, IndexedMap, Item, Map, MultiIndex};
 pub struct TokenInfo {
     /// The owner of the newly minter NFT
     pub owner: CanonicalAddr,
+    /// Readable addr of the owner
+    pub owner_human_addr: HumanAddr,
     /// approvals are stored here, as we clear them all upon transfer and cannot accumulate much
     pub approvals: Vec<Approval>,
 
@@ -20,6 +22,14 @@ pub struct TokenInfo {
     pub description: String,
     /// A URI pointing to an image representing the asset
     pub image: String,
+
+    pub prompt: String,
+
+    pub contributors: Vec<HumanAddr>,
+
+    pub commits: Vec<Commit>,
+
+    pub status: NFTStatus,
 }
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
@@ -28,6 +38,22 @@ pub struct Approval {
     pub spender: CanonicalAddr,
     /// When the Approval expires (maybe Expiration::never)
     pub expires: Expiration,
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+pub struct Commit {
+    pub owner: HumanAddr,
+    pub id: String,
+    pub prompt: String,
+    pub is_approved: bool,
+    pub created_at: u64,
+}
+
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+
+pub enum NFTStatus {
+    Minted,
+    Freeze,
 }
 
 pub const CONTRACT_INFO: Item<ContractInfoResponse> = Item::new("nft_info");

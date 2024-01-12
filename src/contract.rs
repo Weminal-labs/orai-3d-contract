@@ -1,6 +1,8 @@
+use std::vec;
+
 use cosmwasm_std::{
     attr, to_binary, Api, Binary, BlockInfo, Deps, DepsMut, Env, HandleResponse, HumanAddr,
-    InitResponse, MessageInfo, Order, StdError, StdResult, KV, MigrateResponse,
+    InitResponse, MessageInfo, MigrateResponse, Order, StdError, StdResult, KV,
 };
 
 use cw721::{
@@ -10,11 +12,14 @@ use cw721::{
 
 use crate::check_size;
 use crate::error::ContractError;
-use crate::msg::{HandleMsg, InitMsg, MintMsg, MinterResponse, QueryMsg, MigrateMsg};
-use crate::state::{
-    decrement_tokens, increment_tokens, num_tokens, tokens, Approval, TokenInfo, CONTRACT_INFO,
-    MINTER, OPERATORS, OWNER,
+use crate::msg::{
+    HandleMsg, InitMsg, MigrateMsg, MintMsg, MinterResponse, QueryMsg, TokenInfoResponse,
 };
+use crate::state::{
+    decrement_tokens, increment_tokens, num_tokens, tokens, Approval, Commit, NFTStatus, TokenInfo,
+    CONTRACT_INFO, MINTER, OPERATORS, OWNER,
+};
+use crate::utils::generate_random_string;
 use cw_storage_plus::Bound;
 
 // version info for migration info
@@ -80,6 +85,12 @@ pub fn handle(
             image,
         } => handle_update_nft(deps, env, info, token_id, name, description, image),
         HandleMsg::ChangeMinter { minter } => handle_change_minter(deps, env, info, minter),
+        HandleMsg::Freeze { token_id } => handle_freeze_nft(deps, env, info, token_id),
+        HandleMsg::ApproveCommit {
+            token_id,
+            commit_id,
+        } => handle_approve_commit(deps, env, info, token_id, commit_id),
+        HandleMsg::Commit { token_id, prompt } => handle_commit(deps, env, info, token_id, prompt),
     }
 }
 
@@ -121,14 +132,30 @@ pub fn handle_mint(
     check_size!(description, MAX_CHARS_SIZE);
     let image = msg.image;
     check_size!(image, MAX_CHARS_SIZE);
+    let prompt = msg.prompt;
+    let contributors = vec![info.sender.clone()];
+
+    let first_commit = Commit {
+        owner: info.sender.clone(),
+        id: generate_random_string(32),
+        prompt: prompt.clone(),
+        is_approved: true,
+        created_at: _env.block.time,
+    };
+    let commits = vec![first_commit];
 
     // create the token
     let token = TokenInfo {
         owner: deps.api.canonical_address(&msg.owner)?,
+        owner_human_addr: msg.owner,
         approvals: vec![],
         name,
         description,
         image,
+        prompt,
+        contributors,
+        commits,
+        status: NFTStatus::Minted,
     };
     tokens().update(deps.storage, &msg.token_id, |old| match old {
         Some(_) => Err(ContractError::Claimed {}),
@@ -437,6 +464,107 @@ pub fn handle_change_minter(
     })
 }
 
+pub fn handle_commit(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    token_id: String,
+    prompt: String,
+) -> Result<HandleResponse, ContractError> {
+    let mut token = tokens().load(deps.storage, &token_id)?;
+    if token.status == NFTStatus::Freeze {
+        return Err(ContractError::Unauthorized {});
+    }
+
+    let mut contributors = token.contributors.clone();
+    if !contributors.contains(&info.sender) {
+        contributors.push(info.sender.clone());
+    }
+
+    let commit = Commit {
+        owner: info.sender.clone(),
+        id: generate_random_string(32),
+        prompt: prompt.clone(),
+        is_approved: false,
+        created_at: _env.block.time,
+    };
+    token.commits.push(commit);
+    token.contributors = contributors;
+    tokens().save(deps.storage, &token_id, &token)?;
+    Ok(HandleResponse {
+        messages: vec![],
+        attributes: vec![
+            attr("action", "commit"),
+            attr("token_id", token_id),
+            attr("owner", info.sender),
+        ],
+        data: None,
+    })
+}
+
+pub fn handle_approve_commit(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    token_id: String,
+    commit_id: String,
+) -> Result<HandleResponse, ContractError> {
+    let owner_raw = deps.api.canonical_address(&info.sender)?;
+    let mut token = tokens().load(deps.storage, &token_id)?;
+    if !token.owner.eq(&owner_raw) {
+        return Err(ContractError::Unauthorized {});
+    }
+
+    token.commits.iter_mut().for_each(|commit| {
+        if commit.id.eq(&commit_id) {
+            commit.is_approved = true;
+        }
+    });
+
+    token.prompt = token
+        .commits
+        .iter()
+        .find(|commit| commit.id.eq(&commit_id))
+        .unwrap()
+        .prompt
+        .clone();
+
+    tokens().save(deps.storage, &token_id, &token)?;
+    Ok(HandleResponse {
+        messages: vec![],
+        attributes: vec![
+            attr("action", "approve_commit"),
+            attr("token_id", token_id),
+            attr("owner", info.sender),
+        ],
+        data: None,
+    })
+}
+
+pub fn handle_freeze_nft(
+    deps: DepsMut,
+    _env: Env,
+    info: MessageInfo,
+    token_id: String,
+) -> Result<HandleResponse, ContractError> {
+    let owner_raw = deps.api.canonical_address(&info.sender)?;
+    let mut token = tokens().load(deps.storage, &token_id)?;
+    if !token.owner.eq(&owner_raw) {
+        return Err(ContractError::Unauthorized {});
+    }
+    token.status = NFTStatus::Freeze;
+    tokens().save(deps.storage, &token_id, &token)?;
+    Ok(HandleResponse {
+        messages: vec![],
+        attributes: vec![
+            attr("action", "freeze_nft"),
+            attr("token_id", token_id),
+            attr("owner", info.sender),
+        ],
+        data: None,
+    })
+}
+
 /// returns true iff the sender can execute approve or reject on the contract
 fn check_can_approve(
     deps: Deps,
@@ -555,7 +683,13 @@ pub fn query(deps: Deps, env: Env, msg: QueryMsg) -> StdResult<Binary> {
         QueryMsg::AllTokens { start_after, limit } => {
             to_binary(&query_all_tokens(deps, start_after, limit)?)
         }
+        QueryMsg::TokenInfo { token_id } => to_binary(&query_token_info(deps, token_id)?),
     }
+}
+
+fn query_token_info(deps: Deps, token_id: String) -> StdResult<TokenInfoResponse> {
+    let token_info = tokens().load(deps.storage, &token_id)?;
+    Ok(TokenInfoResponse { token_info })
 }
 
 fn query_minter(deps: Deps) -> StdResult<MinterResponse> {

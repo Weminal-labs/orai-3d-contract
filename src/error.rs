@@ -9,6 +9,9 @@ pub enum ContractError {
     #[error("Unauthorized")]
     Unauthorized {},
 
+    #[error("NFT is freezed cannot modify anymore")]
+    Freeze {},
+
     #[error("token_id already claimed")]
     Claimed {},
 

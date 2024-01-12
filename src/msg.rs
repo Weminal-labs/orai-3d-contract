@@ -3,6 +3,8 @@ use cw721::Expiration;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
+use crate::state::TokenInfo;
+
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
 pub struct InitMsg {
     /// name of the NFT contract, can use default
@@ -80,6 +82,23 @@ pub enum HandleMsg {
 
     /// Mint a new NFT, can only be called by the contract minter
     Mint(MintMsg),
+
+    /// Create a commit, can be called by anyone want to contribute to NFT
+    Commit {
+        token_id: String,
+        prompt: String,
+    },
+
+    /// Approve a commit, can only be called by the token owner
+    ApproveCommit {
+        token_id: String,
+        commit_id: String,
+    },
+
+    /// Freeze a NFT, can only be called by the token owner
+    Freeze {
+        token_id: String,
+    },
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -96,6 +115,7 @@ pub struct MintMsg {
     pub image: String,
     // min_royalty: Fraction,
     // /// Indicates the minimum allowed `royalty` to be set on a `Collectible` when an Artist creates it.
+    pub prompt: String,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug, PartialEq, JsonSchema)]
@@ -161,10 +181,21 @@ pub enum QueryMsg {
 
     // Return the minter
     Minter {},
+
+    // Return the token info
+    TokenInfo {
+        token_id: String,
+    },
 }
 
 /// Shows who can mint these tokens
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
 pub struct MinterResponse {
     pub minter: HumanAddr,
+}
+
+/// Shows token info
+#[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
+pub struct TokenInfoResponse {
+    pub token_info: TokenInfo,
 }
