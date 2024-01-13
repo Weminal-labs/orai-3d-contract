@@ -19,7 +19,6 @@ use crate::state::{
     decrement_tokens, increment_tokens, num_tokens, tokens, Approval, Commit, NFTStatus, TokenInfo,
     CONTRACT_INFO, MINTER, OPERATORS, OWNER,
 };
-use crate::utils::generate_random_string;
 use cw_storage_plus::Bound;
 
 // version info for migration info
@@ -137,7 +136,7 @@ pub fn handle_mint(
 
     let first_commit = Commit {
         owner: info.sender.clone(),
-        id: generate_random_string(32),
+        id: _env.block.time.to_string(),
         prompt: prompt.clone(),
         is_approved: true,
         created_at: _env.block.time,
@@ -473,7 +472,7 @@ pub fn handle_commit(
 ) -> Result<HandleResponse, ContractError> {
     let mut token = tokens().load(deps.storage, &token_id)?;
     if token.status == NFTStatus::Freeze {
-        return Err(ContractError::Unauthorized {});
+        return Err(ContractError::Freeze {});
     }
 
     let mut contributors = token.contributors.clone();
@@ -483,7 +482,7 @@ pub fn handle_commit(
 
     let commit = Commit {
         owner: info.sender.clone(),
-        id: generate_random_string(32),
+        id: _env.block.time.to_string(),
         prompt: prompt.clone(),
         is_approved: false,
         created_at: _env.block.time,
