@@ -42,6 +42,7 @@ pub struct Approval {
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, JsonSchema, Debug)]
 pub struct Commit {
+    pub eueno_url: String,
     pub owner: HumanAddr,
     pub id: String,
     pub prompt: String,

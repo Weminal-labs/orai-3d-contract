@@ -89,7 +89,11 @@ pub fn handle(
             token_id,
             commit_id,
         } => handle_approve_commit(deps, env, info, token_id, commit_id),
-        HandleMsg::Commit { token_id, prompt } => handle_commit(deps, env, info, token_id, prompt),
+        HandleMsg::Commit {
+            token_id,
+            prompt,
+            eueno_url,
+        } => handle_commit(deps, env, info, token_id, prompt, eueno_url),
     }
 }
 
@@ -135,6 +139,7 @@ pub fn handle_mint(
     let contributors = vec![info.sender.clone()];
 
     let first_commit = Commit {
+        eueno_url: "".to_string(),
         owner: info.sender.clone(),
         id: _env.block.time.to_string(),
         prompt: prompt.clone(),
@@ -469,6 +474,7 @@ pub fn handle_commit(
     info: MessageInfo,
     token_id: String,
     prompt: String,
+    eueno_url: String,
 ) -> Result<HandleResponse, ContractError> {
     let mut token = tokens().load(deps.storage, &token_id)?;
     if token.status == NFTStatus::Freeze {
@@ -481,6 +487,7 @@ pub fn handle_commit(
     }
 
     let commit = Commit {
+        eueno_url,
         owner: info.sender.clone(),
         id: _env.block.time.to_string(),
         prompt: prompt.clone(),

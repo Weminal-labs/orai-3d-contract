@@ -144,6 +144,7 @@ fn commit() {
         mock_env(),
         committer,
         HandleMsg::Commit {
+            eueno_url: "https://eueno.io".to_string(),
             token_id: token_id.clone(),
             prompt: "husky dog".to_string(),
         },
@@ -234,6 +235,7 @@ fn approve_commit() {
         mock_env(),
         committer,
         HandleMsg::Commit {
+            eueno_url: "https://node1-gateway-ipfs.eueno.io/ipfs/QmdgRfE1Rq1JNBfRSZNzPeFqK5ksyFQz29qxw5x5biMHuM".to_string(),
             token_id: token_id.clone(),
             prompt: "husky dog".to_string(),
         },
@@ -1279,10 +1281,11 @@ fn update_nft() {
     let description = "Allows the owner to petrify anyone looking at him or her".to_string();
     let image = "https://ipfs.io/ipfs/QmWCp5t1TLsLQyjDFa87ZAp72zYqmC7L2DsNjFdpH8bBoz".to_string();
     let owner = "orai1up8ct7kk2hr6x9l37ev6nfgrtqs268tdrevk3t".to_string();
+    let prompt = "beauty cat".to_string();
     let mint_str = format!(
-            "{{\"token_id\":\"{}\",\"owner\":\"{}\",\"name\":\"{}\",\"description\":\"{}\",\"image\":\"{}\"
+            "{{\"token_id\":\"{}\",\"owner\":\"{}\",\"name\":\"{}\",\"description\":\"{}\",\"image\":\"{}\",\"prompt\":\"{}\"
     }}",
-    token_id, owner, name, description,image
+    token_id, owner, name, description,image,prompt
         );
     // println!("length count: {}", owner.len());
     let mint_msg: MintMsg = from_slice(mint_str.as_bytes()).unwrap();

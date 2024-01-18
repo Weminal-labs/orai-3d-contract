@@ -87,6 +87,7 @@ pub enum HandleMsg {
     Commit {
         token_id: String,
         prompt: String,
+        eueno_url: String,
     },
 
     /// Approve a commit, can only be called by the token owner
