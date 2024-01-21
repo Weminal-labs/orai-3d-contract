@@ -7,7 +7,7 @@ use cw721::{
     AllNftInfoResponse, ApprovedForAllResponse, ContractInfoResponse, NftInfoResponse,
     NumTokensResponse, OwnerOfResponse, TokensResponse,
 };
-use orai_decal_nft::msg::{HandleMsg, InitMsg, QueryMsg, MigrateMsg};
+use orai_3d::msg::{HandleMsg, InitMsg, QueryMsg, MigrateMsg};
 
 fn main() {
     let mut out_dir = current_dir().unwrap();

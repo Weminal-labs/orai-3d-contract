@@ -1,154 +1,62 @@
-Code id: 6613
+Code id: 6677
 
-Contract address: orai1094ellehzmlsqf6uax7lhlayggd6wf8vu2ejtlzfgk7e8d4pjgssglxvsf
-
-# Find bug
-
-- Come from the fn generate_random_string
-  => replace with env.block.time for commit id
-
-# Use Cosmwasm IDE extension instead of CLI
-
-# CLI
+Contract address: orai1n27agkvx9jx58qdce5ezcp7cx3zuefhzt75gg0f6kvw5a9ucujuqygykf4
 
 ## Upload wasm and init contract
 
 ```
-yarn oraicli wasm upload /home/asus/Workspace/oraichain/orai-decal-contract/artifacts/orai_decal_nft.wasm --fees 2500orai
+yarn oraicli wasm upload /home/asus/Workspace/oraichain/orai-decal-contract/artifacts/orai_3d.wasm --fees 2500orai
 
-yarn oraicli wasm instantiate --code-id 6613 --input '{"symbol": "Orai Decal Contract", "minter": "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m"}' --label "orai decal"
+yarn oraicli wasm instantiate --code-id 6677 --input '{"symbol": "Orai 3D", "minter": "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m"}' --label "Orai 3D"
 ```
 
 ## Execute
 
 ### Mint
 
+#### T-Shirt
+
 ```
 yarn oraicli wasm execute
-orai1094ellehzmlsqf6uax7lhlayggd6wf8vu2ejtlzfgk7e8d4pjgssglxvsf --input '{"mint":{"token_id":"1","owner":"orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m","name":"3D T-shirt Decal","image":"This is image","prompt":"A cat"}}'
+ --input '{"mint":{"token_id":"1","owner":"orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m","name":"T-Shirt","image":"https://i.ebayimg.com/images/g/4IsAAOSwpddgqEwp/s-l1200.jpg","prompt":""}}'
+```
+
+#### Cup
+
+```
+yarn oraicli wasm execute
+ --input '{"mint":{"token_id":"2","owner":"orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m","name":"Cup","image":"https://www.shutterstock.com/image-vector/paper-cup-filled-black-coffee-600nw-1801429321.jpg","prompt":""}}'
+```
+
+#### Shoes
+
+```
+yarn oraicli wasm execute
+ --input '{"mint":{"token_id":"3","owner":"orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m","name":"Shoes","image":"https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/b14aba9a-f828-45d3-9607-b687b884aa7d/revolution-7-easyon-road-running-shoes-nNqdwt.png","prompt":""}}'
 ```
 
 ### Commit
 
 ```
-{"commit": {"token_id": "2", "prompt": "a dog"}}
+{"commit": {"token_id": "1", "prompt": "A radiant sun rises over a dark, serene landscape, casting an ethereal glow.", "eueno_url": "https://node1-gateway-ipfs.eueno.io/ipfs/QmegwaTzbVg3LDzuCG18m7BSzdcdrndfvboueraUZS7jG6"}}
+```
+
+```
+{"commit": {"token_id": "1", "prompt": "Dark-light gradient, purple-pink-black, white stars, vivid light streaks, evokes wonder and vast space.", "eueno_url": "https://node1-gateway-ipfs.eueno.io/ipfs/QmQ62LKjFSWJTc1QmHfJe4mvHCFkDJHyVXiuoATtE9vN5Y"}}
 ```
 
 ### Approve Commit
 
 ```
-{"approve_commit": {"token_id": "2", "commit_id": "1705118448"}}
+{"approve_commit": {"token_id": "1", "commit_id": ""}}
 ```
 
-#### Before approve commit
-
 ```
-{
-  "data": {
-    "token_info": {
-      "owner": "IKGUMnDTNsTQCi8YrQYrvVLVWFs=",
-      "owner_human_addr": "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m",
-      "approvals": [],
-      "name": "3D T-shirt Decal",
-      "description": "",
-      "image": "This is image",
-      "prompt": "A cat",
-      "contributors": [
-        "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m",
-        "orai1e2a2l2903dzxeh7ct7u8ahs3pz8g30qn8tcd8k"
-      ],
-      "commits": [
-        {
-          "owner": "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m",
-          "id": "1705117333",
-          "prompt": "A cat",
-          "is_approved": true,
-          "created_at": 1705117333
-        },
-        {
-          "owner": "orai1e2a2l2903dzxeh7ct7u8ahs3pz8g30qn8tcd8k",
-          "id": "1705118448",
-          "prompt": "a dog",
-          "is_approved": false,
-          "created_at": 1705118448
-        }
-      ],
-      "status": "Minted"
-    }
-  }
-}
-```
-
-#### After approve commit
-
-```
-{
-  "data": {
-    "token_info": {
-      "owner": "IKGUMnDTNsTQCi8YrQYrvVLVWFs=",
-      "owner_human_addr": "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m",
-      "approvals": [],
-      "name": "3D T-shirt Decal",
-      "description": "",
-      "image": "This is image",
-      "prompt": "a dog",
-      "contributors": [
-        "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m",
-        "orai1e2a2l2903dzxeh7ct7u8ahs3pz8g30qn8tcd8k"
-      ],
-      "commits": [
-        {
-          "owner": "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m",
-          "id": "1705117333",
-          "prompt": "A cat",
-          "is_approved": true,
-          "created_at": 1705117333
-        },
-        {
-          "owner": "orai1e2a2l2903dzxeh7ct7u8ahs3pz8g30qn8tcd8k",
-          "id": "1705118448",
-          "prompt": "a dog",
-          "is_approved": true,
-          "created_at": 1705118448
-        }
-      ],
-      "status": "Minted"
-    }
-  }
-}
+{"approve_commit": {"token_id": "1", "commit_id": ""}}
 ```
 
 ## Query
 
 ```
-{"token_info": {"token_id": "2"}}
-```
-
-```
-{
-  "data": {
-    "token_info": {
-      "owner": "IKGUMnDTNsTQCi8YrQYrvVLVWFs=",
-      "owner_human_addr": "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m",
-      "approvals": [],
-      "name": "3D T-shirt Decal",
-      "description": "",
-      "image": "This is image",
-      "prompt": "A cat",
-      "contributors": [
-        "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m"
-      ],
-      "commits": [
-        {
-          "owner": "orai1yzsegvns6vmvf5q29uv26p3th4fd2kzmsq3h6m",
-          "id": "1705117333",
-          "prompt": "A cat",
-          "is_approved": true,
-          "created_at": 1705117333
-        }
-      ],
-      "status": "Minted"
-    }
-  }
-}
+{"token_info": {"token_id": "1"}}
 ```
